@@ -1,8 +1,6 @@
 package configs
 
-import (
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 type ConfigDBInterface interface {
 	GetDB() *gorm.DB

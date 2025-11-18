@@ -228,7 +228,7 @@ func NewConnectionHandler(
 		handler.providers.vlllm = providerSet.VLLLM
 		handler.mcpManager = providerSet.MCP
 	}
-	handler.checkDeviceInfo()
+	// handler.checkDeviceInfo()
 	agent, prompt := handler.InitWithAgent()
 	handler.checkTTSProvider(agent, config) // 检查TTS提供者
 	handler.checkLLMProvider(agent, config) // 检查LLM提供者是否匹配

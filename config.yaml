@@ -32,8 +32,8 @@ web:
   # Web服务监听端口
   port: 8080
   # 由ota下发的WebSocket地址
-  websocket: ws://你的ip:8000
-  vision: http://你的ip:8080/api/vision
+  websocket: ws://127.0.0.1:8000
+  vision: http://127.0.0.1:8080/api/vision
   activate_text: "Amine AI Chat" # 发送激活码时携带的文本
 
 log:
@@ -96,9 +96,9 @@ local_mcp_fun:
 # 选择使用的模块
 selected_module:
   ASR: DoubaoASR
-  TTS: EdgeTTS
-  LLM: OllamaLLM
-  VLLLM: ChatGLMVLLM
+  TTS: DoubaoTTS
+  LLM: VolcanoLLM
+  VLLLM: QwenVLVLLM
 
 # ASR配置
 ASR:
@@ -106,10 +106,10 @@ ASR:
     # 火山 流式语音识别大模型-小时版， https://console.volcengine.com/ark/region:ark+cn-beijing/tts/speechRecognition
     # 开通功能，有20小时免费额度
     type: doubao
-    appid: "你的appid"
-    access_token: 你的access_token
+    appid: "9326382807"
+    access_token: N_Y42tYRb1YBg5aEKFuYt3-LD_y5SzPl
     output_dir: tmp/
-    end_window_size: 300  # 结束窗口大小，单位毫秒，默认400ms，最小200ms
+    end_window_size: 300 # 结束窗口大小，单位毫秒，默认400ms，最小200ms
 
   GoSherpaASR:
     type: gosherpa
@@ -200,11 +200,11 @@ TTS:
   DoubaoTTS:
     # 火山语音合成大模型 https://console.volcengine.com/ark/region:ark+cn-beijing/tts/speechSynthesis
     type: doubao
-    voice: zh_female_wanwanxiaohe_moon_bigtts # 湾湾小何
+    voice: ICL_zh_female_wenyinvsheng_v1_tob # 湾湾小何
     output_dir: "tmp/"
-    appid: "你的appid"
-    token: 你的access_token
-    cluster: 你的cluster
+    appid: "9326382807"
+    token: N_Y42tYRb1YBg5aEKFuYt3-LD_y5SzPl
+    cluster: volcano_tts
   GoSherpaTTS:
     type: gosherpa
     cluster: "ws://127.0.0.1:8848/tts"
@@ -256,6 +256,33 @@ LLM:
     # 可在这里找到你的personal_access_token：https://www.coze.cn/open/oauth/pats
     personal_access_token: 你的coze个人令牌
     url: "https://api.coze.cn" # Coze服务地址
+  AlibabaLLM:
+    # 使用阿里云的OpenAI格式API
+    type: openai
+    # model_name: qwen2.5-72b-instruct # 或其他阿里云模型，如 qwen-max, qwen-plus
+    # model_name: qwen-max
+    model_name: "qwen-plus"
+    # model_name: qwen-turbo-latest
+    url: https://dashscope.aliyuncs.com/compatible-mode/v1 # 阿里云OpenAI格式API地址
+    api_key: sk-4b7a584223614bf594989ef1578e6f54 # 在阿里云控制台获取
+
+    # 模型生成参数配置
+    temperature: 1.5 # [0, 2] 控制随机性，0更确定，2更随机
+    top_p: 1 # (0, 1] 核采样参数，控制词汇多样性
+    presence_penalty: 1.5 # [-2, 2] 存在惩罚，正值减少重复主题，负值增加重复
+
+  VolcanoLLM:
+    # 使用火山引擎的OpenAI格式API (豆包大模型)
+    type: openai
+    # model_name: doubao-1-5-pro-32k-character-250715 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    # model_name: doubao-1-5-lite-32k-250115 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    model_name: doubao-1-5-pro-256k-250115 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    # model_name: doubao-seed-1-6-251015 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    # model_name: doubao-seed-1-6-lite-251015 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    # model_name: doubao-seed-1-6-flash-250715 # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    # model_name: deepseek-v3-1-terminus # 火山引擎模型：doubao-lite-4k, doubao-pro-4k, doubao-pro-32k
+    url: https://ark.cn-beijing.volces.com/api/v3 # 火山引擎API地址
+    api_key: 82afe5d6-98c1-46ae-a3b9-c07b58e69a17 # 在火山引擎控制台获取
 
 # 退出指令
 CMD_exit:
@@ -284,6 +311,22 @@ VLLLM:
     type: ollama
     model_name: qwen2.5vl # 本地视觉模型
     url: http://localhost:11434
+    max_tokens: 4096
+    temperature: 0.7
+    top_p: 0.9
+    security: # 图片安全配置
+      max_file_size: 10485760 # 10MB
+      max_pixels: 16777216 # 16M像素
+      max_width: 4096
+      max_height: 4096
+      allowed_formats: ["jpeg", "jpg", "png", "webp", "gif"]
+      enable_deep_scan: true
+      validation_timeout: 10s
+  QwenVLVLLM:
+    type: openai
+    model_name: qwen-vl-plus
+    url: https://dashscope.aliyuncs.com/compatible-mode/v1
+    api_key: sk-4b7a584223614bf594989ef1578e6f54
     max_tokens: 4096
     temperature: 0.7
     top_p: 0.9

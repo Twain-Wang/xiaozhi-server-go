@@ -9,7 +9,9 @@ import (
 	"xiaozhi-server-go/src/configs"
 	"xiaozhi-server-go/src/models"
 
-	"gorm.io/driver/sqlite"
+	// "gorm.io/driver/sqlite"
+
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	xiaozhi_utils "xiaozhi-server-go/src/core/utils"
@@ -97,17 +99,40 @@ func GetTxDB() *gorm.DB {
 
 // InitDB 初始化数据库类型并连接
 func InitDB() (*gorm.DB, string, error) {
+	// var (
+	// 	db  *gorm.DB
+	// 	err error
+	// )
+
+	// dbType = "sqlite"
+	// path := "./config.db"
+	// db, err = gorm.Open(sqlite.Open(path))
+
+	// if err != nil {
+	// 	return nil, "", fmt.Errorf("连接数据库失败: %w", err)
+	// }
 	var (
 		db  *gorm.DB
 		err error
 	)
 
-	dbType = "sqlite"
-	path := "./config.db"
-	db, err = gorm.Open(sqlite.Open(path))
+	dbType = "postgres"
 
+	host := "127.0.0.1"
+	port := 5432
+	user := "a"
+	password := "ruoyi123"
+	dbname := "xiaozhi"
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable TimeZone=Asia/Shanghai",
+		host, user, password, dbname, port,
+	)
+
+	// ⭐ 注意这里使用 "="
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, "", fmt.Errorf("连接数据库失败: %w", err)
+		return nil, "", fmt.Errorf("连接 PostgreSQL 失败: %w", err)
 	}
 
 	// 自动迁移所有表
@@ -124,14 +149,12 @@ func SetLogger(logger *xiaozhi_utils.Logger) {
 	dbLogger = logger
 	DB.Logger = &DBLogger{logger: logger}
 
-	var version string
-	DB.Raw("SELECT sqlite_version()").Scan(&version)
-	logger.Info("SQLite 数据库连接成功，版本: %s", version)
+	logger.Info("PostgreSQL 数据库连接成功")
 }
 
 // migrateTables 自动迁移模型表结构
 func migrateTables(db *gorm.DB) error {
-	err := db.AutoMigrate(
+	if err := db.AutoMigrate(
 		&models.LLMConfig{},
 		&models.TTSConfig{},
 		&models.ASRConfig{},
@@ -142,8 +165,10 @@ func migrateTables(db *gorm.DB) error {
 		&models.Device{},
 		&models.AuthClient{},
 		&models.ServerStatus{},
-	)
-	return err
+	); err != nil {
+		return fmt.Errorf("AutoMigrate 失败: %w", err)
+	}
+	return nil
 }
 
 // InsertDefaultConfigIfNeeded 首次启动插入默认配置
